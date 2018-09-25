@@ -296,3 +296,9 @@ void led_set_user(uint8_t usb_led)
 }
 #endif
 
+#ifdef RGB_MATRIX_H
+void rgb_matrix_indicators_user(void) {
+    // Disable light in middle of 2U position
+    rgb_matrix_set_color(42, 0, 0, 0);
+}
+#endif
