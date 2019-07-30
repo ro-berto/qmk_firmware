@@ -22,7 +22,7 @@ extern keymap_config_t keymap_config;
 enum planck_layers { _QWERTY, _LOWER, _RAISE, _NUMPAD, _MACRO, _ADJUST };
 
 uint8_t current_layer = _QWERTY;
-uint8_t prev_layer = _QWERTY;
+uint8_t prev_layer = _ADJUST;
 bool layer_changed = false;
 
 enum planck_keycodes {
@@ -33,7 +33,7 @@ enum planck_keycodes {
   BACKLIT,
   EXT_PLV,
   SET_QWE,
-  NUMPAD_KC
+  NPKC
 };
 
 enum light_modes {
@@ -51,7 +51,7 @@ enum light_modes {
 #define MMACR MO(_MACRO)
 #define MY_ENT MT(MOD_RSFT, KC_ENT)
 #define MR_COMB MT(MMACR, KC_CAPSLOCK)
-#define Q_INDEX 16
+#define Q_INDEX 1
 #define F_INDEX 16
 #define J_INDEX 19
 #define MAX_LEDS_PER_KEY 8
@@ -80,7 +80,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSPC,
     KC_ESC,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,
     KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, MY_ENT ,
-    MR_COMB, KC_LCTL, KC_LALT, KC_LGUI, LOWER,   KC_SPC,  KC_SPC,  RAISE,   KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT
+    MR_COMB, KC_LCTL, KC_LGUI, KC_LALT, LOWER,   KC_SPC,  KC_SPC,  RAISE,   KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT
 ),
 
 /* Lower
@@ -113,17 +113,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * `-----------------------------------------------------------------------------------'
  */
 [_RAISE] = LAYOUT_planck_grid(
-    KC_TILD, KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC, KC_CIRC, KC_AMPR,    KC_ASTR,    KC_LPRN, KC_RPRN, KC_BSPC,
-    KC_DEL,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_UNDS,    KC_PLUS,    KC_LCBR, KC_RCBR, KC_PIPE,
-    _______, KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  S(KC_NUHS), S(KC_NUBS), KC_HOME, KC_END,  _______,
-    _______, _______, _______, _______, _______, _______, _______, _______,    KC_MNXT,    KC_VOLD, KC_VOLU, KC_MPLY
+    KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_BSPC,
+    KC_DEL,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_MINS, KC_EQL,  KC_LBRC, KC_RBRC, KC_BSLS,
+    _______, KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  KC_NUHS, KC_NUBS, KC_PGUP, KC_PGDN, _______,
+    _______, _______, _______, _______, _______, _______, _______, _______, KC_MNXT, KC_VOLD, KC_VOLU, KC_MPLY
 ),
 
 [_MACRO] = LAYOUT_planck_grid(
-    _______,   _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-    _______,   _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-    _______,   _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-    _______, NUMPAD_KC, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+       NPKC, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 ),
 /* Numpad
  * ,------------------------------------------------------------------------------------.
@@ -167,18 +167,18 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 void color_kb(uint8_t mode);
 
 uint32_t layer_state_set_user(uint32_t state) {
-  uint32_t new_state = update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
+  uint32_t layer_state = update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
   for (int i = _QWERTY; i <= _ADJUST; i ++) {
     if (IS_LAYER_ON(i)) {
       current_layer = i;
     }
   }
-  return new_state;
+  return layer_state;
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
-  case NUMPAD_KC:
+  case NPKC:
     if (record->event.pressed) {
       set_single_persistent_default_layer(_NUMPAD);
     }
@@ -338,7 +338,7 @@ void color_kb(uint8_t mode) {
     }
     break;
   case LOWER_MODE:
-    for (int i = 12; i < 14 && count < NUM_KEYS; i++) {
+    for (int i = 12; i < 24 && count < NUM_KEYS; i++) {
       indices[count] = i;
       colors[count] = ORANGE;
       count++;
