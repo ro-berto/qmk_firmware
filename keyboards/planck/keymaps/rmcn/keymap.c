@@ -123,7 +123,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
        NPKC, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
+    _______,    NPKC, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 ),
 /* Numpad
  * ,------------------------------------------------------------------------------------.
@@ -137,9 +137,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * `------------------------------------------------------------------------------------'
  */
 [_NUMPAD] = LAYOUT_planck_grid(
-    KC_TAB,  _______, _______, _______, _______, _______, _______, KC_KP_7, KC_KP_7, KC_KP_7, KC_PMNS, KC_BSPC,
-    _______, _______, _______, _______, _______, _______, _______, KC_KP_6, KC_KP_5, KC_KP_4, KC_PPLS, _______,
-    _______, _______, _______, _______, _______, _______, _______, KC_KP_3, KC_KP_2, KC_KP_1, KC_PSLS, KC_PENT,
+    KC_TAB,  _______, _______, _______, _______, _______, _______, KC_KP_7, KC_KP_8, KC_KP_9, KC_PMNS, KC_BSPC,
+    _______, _______, _______, _______, _______, _______, _______, KC_KP_4, KC_KP_5, KC_KP_6, KC_PPLS, _______,
+    _______, _______, _______, _______, _______, _______, _______, KC_KP_1, KC_KP_2, KC_KP_3, KC_PSLS, KC_PENT,
     SET_QWE, _______, _______, _______, _______, _______, _______, _______, KC_KP_0, KC_PDOT, KC_PAST, KC_PEQL
 ),
 
@@ -175,12 +175,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   case NPKC:
     if (record->event.pressed) {
       set_single_persistent_default_layer(_NUMPAD);
+      layer_off(_QWERTY);
+      layer_on(_NUMPAD);
     }
     return false;
     break;
   case SET_QWE:
     if (record->event.pressed) {
       set_single_persistent_default_layer(_QWERTY);
+      layer_off(_NUMPAD);
+      layer_on(_QWERTY);
     }
     return false;
     break;
@@ -249,7 +253,6 @@ void matrix_scan_user(void) {
     if(layer_state_cmp(layer_state, i)){
       current_layer = i;
     }
-
   }
   if (current_layer != prev_layer) {
     layer_changed = true;
@@ -367,8 +370,7 @@ void color_kb(uint8_t mode) {
     break;
   case NUMPAD_MODE:
     for (int i = 7; i < 10 && count < NUM_KEYS; i++) {
-      for (int j = 0; i < j && count < NUM_KEYS; j++) {
-
+      for (int j = 0; j < 3 && count < NUM_KEYS; j++) {
         indices[count] = i + j * 12;
         colors[count] = BLUE;
         count++;
