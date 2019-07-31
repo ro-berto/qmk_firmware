@@ -18,6 +18,7 @@
 #include "muse.h"
 
 extern keymap_config_t keymap_config;
+extern layer_state_t layer_state;
 
 enum planck_layers { _QWERTY, _LOWER, _RAISE, _NUMPAD, _MACRO, _ADJUST };
 
@@ -48,9 +49,8 @@ enum light_modes {
 
 #define LOWER MO(_LOWER)
 #define RAISE MO(_RAISE)
-#define MMACR MO(_MACRO)
 #define MY_ENT MT(MOD_RSFT, KC_ENT)
-#define MR_COMB MT(MMACR, KC_CAPSLOCK)
+#define MR_COMB LT(_MACRO, KC_CAPSLOCK)
 #define Q_INDEX 1
 #define F_INDEX 16
 #define J_INDEX 19
@@ -167,13 +167,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 void color_kb(uint8_t mode);
 
 uint32_t layer_state_set_user(uint32_t state) {
-  uint32_t layer_state = update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
-  for (int i = _QWERTY; i <= _ADJUST; i ++) {
-    if (IS_LAYER_ON(i)) {
-      current_layer = i;
-    }
-  }
-  return layer_state;
+  return update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -251,6 +245,12 @@ void dip_update(uint8_t index, bool active) {
 }
 
 void matrix_scan_user(void) {
+  for (int i = _QWERTY; i <= _ADJUST; i++) {
+    if(layer_state_cmp(layer_state, i)){
+      current_layer = i;
+    }
+
+  }
   if (current_layer != prev_layer) {
     layer_changed = true;
     prev_layer = current_layer;
