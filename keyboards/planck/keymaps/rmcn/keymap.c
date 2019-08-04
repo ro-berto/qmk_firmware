@@ -34,8 +34,28 @@ enum planck_keycodes {
   BACKLIT,
   EXT_PLV,
   SET_QWE,
-  NPKC
+  NPKC,
+  // EMOJI_KEYS
+  ROFL,
+  WINK,
+  ZANY
 };
+
+#define FIRST_EMOJI ROFL
+#define LAST_EMOJI ZANY
+#define EMOJI_CODE_LENGTH 6
+const char EMOJIS [][EMOJI_CODE_LENGTH] = {
+  "1F923", //ROFL, 🤣
+  "1F609", //WINK, 😉
+  "1F92A"  //ZANY, 🤪
+};
+
+bool emoji(uint16_t emoji_i) {
+  SEND_STRING(SS_LSFT(SS_LCTRL("u")));
+  send_string(EMOJIS[emoji_i]);
+  return false;
+}
+
 
 enum light_modes {
   QWERTY_MODE,
@@ -129,12 +149,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |       |NumLok|      |      |      |             |      |      |      |      |      |
  * `------------------------------------------------------------------------------------'
  */
-
 [_MACRO] = LAYOUT_planck_grid(
-    EM(0x923), EM(0x609), _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-    _______,   _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-    _______, EM(0x92a), _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-    _______,      NPKC, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
+       ROFL,    WINK, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+    _______,    ZANY, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+    _______,    NPKC, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 ),
 /* Numpad
  * ,------------------------------------------------------------------------------------.
@@ -198,6 +217,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       layer_on(_QWERTY);
     }
     return false;
+    break;
+  case FIRST_EMOJI ... LAST_EMOJI:
+    return emoji(keycode - FIRST_EMOJI);
     break;
   }
   return true;
@@ -367,7 +389,7 @@ void color_kb(uint8_t mode) {
     break;
   case MACRO_MODE:
     for (int i = 0; i < 48 && count < NUM_KEYS; i++) {
-      if (i % 2 == 0) {
+      if (i % 2 == (i / 12 % 2)) {
         indices[count] = i;
         colors[count] = PURPLE;
         count++;
