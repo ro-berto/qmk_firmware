@@ -45,15 +45,15 @@ enum planck_keycodes {
 #define LAST_EMOJI ZANY
 #define EMOJI_CODE_LENGTH 6
 const char EMOJIS [][EMOJI_CODE_LENGTH] = {
-  "1F923", //ROFL, 🤣
-  "1F609", //WINK, 😉
-  "1F92A"  //ZANY, 🤪
+  "1F923\0", //ROFL, 🤣
+  "1F609\0", //WINK, 😉
+  "1F92A\0"  //ZANY, 🤪
 };
 
-bool emoji(uint16_t emoji_i) {
+void emoji(uint16_t emoji_i) {
   SEND_STRING(SS_LSFT(SS_LCTRL("u")));
   send_string(EMOJIS[emoji_i]);
-  return false;
+  SEND_STRING(SS_TAP(X_ENTER));
 }
 
 
@@ -150,7 +150,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * `------------------------------------------------------------------------------------'
  */
 [_MACRO] = LAYOUT_planck_grid(
-       ROFL,    WINK, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+    _______,    ROFL,    WINK, _______, _______, _______, _______, _______, _______, _______, _______, _______,
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
     _______,    ZANY, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
     _______,    NPKC, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
@@ -219,7 +219,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     return false;
     break;
   case FIRST_EMOJI ... LAST_EMOJI:
-    return emoji(keycode - FIRST_EMOJI);
+    if (record->event.pressed) {
+      emoji(keycode - FIRST_EMOJI);
+    }
+    return false;
     break;
   }
   return true;
