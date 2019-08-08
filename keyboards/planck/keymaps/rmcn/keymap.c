@@ -37,8 +37,20 @@ enum planck_keycodes {
   NPKC,
   // EMOJI_KEYS
   ROFL,
+  KISSES,
+  DOG,
+  SMILE,
   WINK,
-  ZANY
+  ZANY,
+  // SPANISH_KEYS
+  A_ACUTE,
+  E_ACUTE,
+  I_ACUTE,
+  O_ACUTE,
+  U_ACUTE,
+  U_DIAER,
+  N_TILDE,
+  OPEN_X,
 };
 
 #define FIRST_EMOJI ROFL
@@ -46,6 +58,9 @@ enum planck_keycodes {
 #define EMOJI_CODE_LENGTH 6
 const char EMOJIS [][EMOJI_CODE_LENGTH] = {
   "1F923\0", //ROFL, 🤣
+  "1F618\0", //KISSES, 😘
+  "1F415\0", //DOG, 🐕
+  "1F603\0", //SMILE, 😃
   "1F609\0", //WINK, 😉
   "1F92A\0"  //ZANY, 🤪
 };
@@ -56,6 +71,36 @@ void emoji(uint16_t emoji_i) {
   SEND_STRING(SS_TAP(X_ENTER));
 }
 
+#define FIRST_SPANISH A_ACUTE
+#define LAST_SPANISH OPEN_X
+#define SPANISH_CODE_LENGTH 3
+// use 2*i for caps, 2*i + 1 for lower case.
+const char SPANISH [][SPANISH_CODE_LENGTH] = {
+"C1\0", //Á
+"E1\0", //á
+"C9\0", //É
+"E9\0", //é
+"CD\0", //Í
+"ED\0", //í
+"D3\0", //Ó
+"F3\0", //ó
+"DA\0", //Ú
+"FA\0", //ú
+"DC\0", //Ü
+"FC\0", //ü
+"D1\0", //Ñ
+"F1\0", //ñ
+"BF\0", //¿
+"A1\0", //¡
+};
+
+void spanish_char(uint16_t spanish_i) {
+  bool shifted = (bool)(get_mods() & (MOD_BIT(KC_LSHIFT)|MOD_BIT(KC_RSHIFT)));
+  SEND_STRING(SS_LSFT(SS_LCTRL("u")));
+  send_string(SPANISH[spanish_i * 2 + (int)!shifted]);
+  SEND_STRING(SS_TAP(X_ENTER));
+
+}
 
 enum light_modes {
   QWERTY_MODE,
@@ -140,19 +185,19 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 ),
 /* Macro
  * ,------------------------------------------------------------------------------------.
- * | 🤣    |  😉  |      |      |      |      |      |      |      |      |      |      |
+ * |       |rofl  |wink  |eacute|      |      |udiaer|uacute|iacute|oacute|      |      |
  * |-------+------+------+------+------+-------------+------+------+------+------+------|
- * |       |      |      |      |      |      |      |      |      |      |      |      |
+ * |       |      |smile |dog   |      |      |      |      |kisses|      |      |      |
  * |-------+------+------+------+------+------|------+------+------+------+------+------|
- * |       |  🤪   |      |      |      |      |      |      |      |      |      |      |
+ * |       |zany  |      |      |      |ntilde|      |      |      |      | openx|      |
  * |-------+------+------+------+------+------+------+------+------+------+------+------|
  * |       |NumLok|      |      |      |             |      |      |      |      |      |
  * `------------------------------------------------------------------------------------'
  */
 [_MACRO] = LAYOUT_planck_grid(
-    _______,    ROFL,    WINK, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-    _______,    ZANY, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+    _______,    ROFL,    WINK, E_ACUTE, _______, _______, U_DIAER, U_ACUTE, I_ACUTE, O_ACUTE, _______, _______,
+    _______, _______,   SMILE,     DOG, _______, _______, _______, _______,  KISSES, _______, _______, _______,
+    _______,    ZANY, _______, _______, _______, N_TILDE, _______, _______, _______, _______,  OPEN_X, _______,
     _______,    NPKC, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 ),
 /* Numpad
@@ -221,6 +266,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   case FIRST_EMOJI ... LAST_EMOJI:
     if (record->event.pressed) {
       emoji(keycode - FIRST_EMOJI);
+    }
+    return false;
+    break;
+  case FIRST_SPANISH ... LAST_SPANISH:
+    if (record->event.pressed) {
+      spanish_char(keycode - FIRST_SPANISH);
     }
     return false;
     break;
