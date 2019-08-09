@@ -127,6 +127,8 @@ enum light_modes {
 #define BLUE 0x0000FF
 #define PURPLE 0xFF00FF
 #define RED 0xFF0000
+#define YELLOW 0xFFFF00
+#define GREEN 0x00FF00
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
@@ -410,15 +412,44 @@ void color_kb(uint8_t mode) {
   uint8_t indices[NUM_KEYS];
   uint32_t colors[NUM_KEYS];
   uint8_t count = 0;
+  //Google Colors
+  uint8_t blue_indices[] = {
+    0,1,2,12,13,14,24,25,26, //G
+    19,20,31,32,43,44 //g
+  };
+  uint8_t red_indices[] = {
+    15,16,27,28, //o
+    22,23,34,35 //e
+  };
+  uint8_t yellow_indices[] = {
+    17,18,29,30 //o
+  };
+  uint8_t green_indices[] = {
+    9,21,33 //l
+  };
   blank_me(indices, colors);
   switch (mode) {
   case QWERTY_MODE:
-    indices[count] = F_INDEX;
-    colors[count] = WHITE;
-    count++;
-    indices[count] = J_INDEX;
-    colors[count] = WHITE;
-    count++;
+    for (int i = 0; i < 15; i ++) {
+      indices[count] = blue_indices[i];
+      colors[count] = BLUE;
+      count++;
+    }
+    for (int i = 0; i < 8; i ++) {
+      indices[count] = red_indices[i];
+      colors[count] = RED;
+      count++;
+    }
+    for (int i = 0; i < 4; i ++) {
+      indices[count] = yellow_indices[i];
+      colors[count] = YELLOW;
+      count++;
+    }
+    for (int i = 0; i < 3; i ++) {
+      indices[count] = green_indices[i];
+      colors[count] = GREEN;
+      count++;
+    }
     break;
   case RAISE_MODE:
     for (int i = 0; i < 12 && count < NUM_KEYS; i++) {
