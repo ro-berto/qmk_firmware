@@ -22,17 +22,19 @@ extern layer_state_t layer_state;
 
 enum planck_layers { _QWERTY, _LOWER, _RAISE, _NUMPAD, _MACRO, _ADJUST };
 
+#define LOWER MO(_LOWER)
+#define RAISE MO(_RAISE)
+#define MY_ENT MT(MOD_RSFT, KC_ENT)
+#define MR_COMB LT(_MACRO, KC_CAPSLOCK)
+
+
+// Light only?
 uint8_t current_layer = _QWERTY;
 uint8_t prev_layer = _ADJUST;
 bool layer_changed = false;
 
 enum planck_keycodes {
   QWERTY = SAFE_RANGE,
-  COLEMAK,
-  DVORAK,
-  PLOVER,
-  BACKLIT,
-  EXT_PLV,
   SET_QWE,
   NPKC,
   // EMOJI_KEYS
@@ -53,55 +55,59 @@ enum planck_keycodes {
   OPEN_X,
 };
 
+#define MAX_CODE_LENGTH 7
+void uni_int(uint32_t code) {
+  char buffer[MAX_CODE_LENGTH];
+  sprintf(buffer, "%X", (unsigned int)code);
+  SEND_STRING(SS_LSFT(SS_LCTRL("u")));
+  send_string(buffer);
+  SEND_STRING(SS_TAP(X_ENTER));
+}
+
 #define FIRST_EMOJI ROFL
 #define LAST_EMOJI ZANY
-#define EMOJI_CODE_LENGTH 6
-const char EMOJIS [][EMOJI_CODE_LENGTH] = {
-  "1F923\0", //ROFL, 🤣
-  "1F618\0", //KISSES, 😘
-  "1F415\0", //DOG, 🐕
-  "1F603\0", //SMILE, 😃
-  "1F609\0", //WINK, 😉
-  "1F92A\0"  //ZANY, 🤪
+const uint32_t EMOJIS [] = {
+  0x1F923, //ROFL, 🤣
+  0x1F618, //KISSES, 😘
+  0x1F415, //DOG, 🐕
+  0x1F603, //SMILE, 😃
+  0x1F609, //WINK, 😉
+  0x1F92A  //ZANY, 🤪
 };
 
+
 void emoji(uint16_t emoji_i) {
-  SEND_STRING(SS_LSFT(SS_LCTRL("u")));
-  send_string(EMOJIS[emoji_i]);
-  SEND_STRING(SS_TAP(X_ENTER));
+  uni_int(EMOJIS[emoji_i]);
 }
 
 #define FIRST_SPANISH A_ACUTE
 #define LAST_SPANISH OPEN_X
-#define SPANISH_CODE_LENGTH 3
 // use 2*i for caps, 2*i + 1 for lower case.
-const char SPANISH [][SPANISH_CODE_LENGTH] = {
-"C1\0", //Á
-"E1\0", //á
-"C9\0", //É
-"E9\0", //é
-"CD\0", //Í
-"ED\0", //í
-"D3\0", //Ó
-"F3\0", //ó
-"DA\0", //Ú
-"FA\0", //ú
-"DC\0", //Ü
-"FC\0", //ü
-"D1\0", //Ñ
-"F1\0", //ñ
-"BF\0", //¿
-"A1\0", //¡
+const char SPANISH [] = {
+  0xC1, //Á
+  0xE1, //á
+  0xC9, //É
+  0xE9, //é
+  0xCD, //Í
+  0xED, //í
+  0xD3, //Ó
+  0xF3, //ó
+  0xDA, //Ú
+  0xFA, //ú
+  0xDC, //Ü
+  0xFC, //ü
+  0xD1, //Ñ
+  0xF1, //ñ
+  0xBF, //¿
+  0xA1, //¡
 };
 
 void spanish_char(uint16_t spanish_i) {
   bool shifted = (bool)(get_mods() & (MOD_BIT(KC_LSHIFT)|MOD_BIT(KC_RSHIFT)));
-  SEND_STRING(SS_LSFT(SS_LCTRL("u")));
-  send_string(SPANISH[spanish_i * 2 + (int)!shifted]);
-  SEND_STRING(SS_TAP(X_ENTER));
-
+  uni_int(SPANISH[spanish_i * 2 + (int)!shifted]);
 }
 
+//TODO: rgbmatrix only?
 enum light_modes {
   QWERTY_MODE,
   CAPS_MODE,
@@ -112,16 +118,13 @@ enum light_modes {
   ADJUST_MODE
 };
 
-#define LOWER MO(_LOWER)
-#define RAISE MO(_RAISE)
-#define MY_ENT MT(MOD_RSFT, KC_ENT)
-#define MR_COMB LT(_MACRO, KC_CAPSLOCK)
-#define Q_INDEX 1
-#define F_INDEX 16
-#define J_INDEX 19
-#define MAX_LEDS_PER_KEY 8
+
+// TODO: refactor the following (they may already exist)
 #define NUM_KEYS 48
 #define ROW_LENGTH 12
+//TODO: Exclude if no rgbmatrix
+#define MAX_LEDS_PER_KEY 8
+#define Q_INDEX 1
 #define WHITE 0xFFFFFF
 #define ORANGE 0xFFA500
 #define BLUE 0x0000FF
@@ -265,6 +268,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
     return false;
     break;
+  //TODO: Merge into a single case.
   case FIRST_EMOJI ... LAST_EMOJI:
     if (record->event.pressed) {
       emoji(keycode - FIRST_EMOJI);
@@ -281,12 +285,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   return true;
 }
 
+// TODO: wtf is this?
 bool muse_mode = false;
 uint8_t last_muse_note = 0;
 uint16_t muse_counter = 0;
 uint8_t muse_offset = 70;
 uint16_t muse_tempo = 50;
 
+// TODO: remove encoder stuff.
 void encoder_update(bool clockwise) {
   if (muse_mode) {
     if (IS_LAYER_ON(_RAISE)) {
@@ -408,6 +414,7 @@ void apply_keys(uint8_t *indices, uint32_t *colors, uint8_t count) {
   }
 }
 
+// TODO exclude if no rgbmatrix
 void color_kb(uint8_t mode) {
   uint8_t indices[NUM_KEYS];
   uint32_t colors[NUM_KEYS];
@@ -502,6 +509,7 @@ void color_kb(uint8_t mode) {
   apply_keys(indices, colors, count);
 }
 
+//TODO: use sound if enabled
 void led_set_user(uint8_t usb_led) {
   static uint8_t old_usb_led = 0;
 
