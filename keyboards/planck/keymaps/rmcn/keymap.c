@@ -54,56 +54,54 @@ enum planck_keycodes {
   OPEN_X,
 };
 
-#define MAX_CODE_LENGTH 7
-void uni_int(uint32_t code) {
-  char buffer[MAX_CODE_LENGTH];
-  sprintf(buffer, "%X", (unsigned int)code);
+#define MAX_CODE_LENGTH 8
+void uni_char(const char *code) {
   SEND_STRING(SS_LSFT(SS_LCTRL("u")));
-  send_string(buffer);
+  send_string(code);
   SEND_STRING(SS_TAP(X_ENTER));
 }
 
 #define FIRST_EMOJI ROFL
 #define LAST_EMOJI ZANY
-const uint32_t EMOJIS [] = {
-  0x1F923, //ROFL, 🤣
-  0x1F618, //KISSES, 😘
-  0x1F415, //DOG, 🐕
-  0x1F603, //SMILE, 😃
-  0x1F609, //WINK, 😉
-  0x1F92A  //ZANY, 🤪
+const char EMOJIS [][7] = {
+  "1F923\0", //ROFL, 🤣
+  "1F618\0", //KISSES, 😘
+  "1F415\0", //DOG, 🐕
+  "1F603\0", //SMILE, 😃
+  "1F609\0", //WINK, 😉
+  "1F92A\0"  //ZANY, 🤪
 };
 
 
 void emoji(uint16_t emoji_i) {
-  uni_int(EMOJIS[emoji_i]);
+  uni_char(EMOJIS[emoji_i]);
 }
 
 #define FIRST_SPANISH A_ACUTE
 #define LAST_SPANISH OPEN_X
 // use 2*i for caps, 2*i + 1 for lower case.
-const char SPANISH [] = {
-  0xC1, //Á
-  0xE1, //á
-  0xC9, //É
-  0xE9, //é
-  0xCD, //Í
-  0xED, //í
-  0xD3, //Ó
-  0xF3, //ó
-  0xDA, //Ú
-  0xFA, //ú
-  0xDC, //Ü
-  0xFC, //ü
-  0xD1, //Ñ
-  0xF1, //ñ
-  0xBF, //¿
-  0xA1, //¡
+const char SPANISH [][4] = {
+  "C1\0", //Á
+  "E1\0", //á
+  "C9\0", //É
+  "E9\0", //é
+  "CD\0", //Í
+  "ED\0", //í
+  "D3\0", //Ó
+  "F3\0", //ó
+  "DA\0", //Ú
+  "FA\0", //ú
+  "DC\0", //Ü
+  "FC\0", //ü
+  "D1\0", //Ñ
+  "F1\0", //ñ
+  "BF\0", //¿
+  "A1\0", //¡
 };
 
 void spanish_char(uint16_t spanish_i) {
   bool shifted = (bool)(get_mods() & (MOD_BIT(KC_LSHIFT)|MOD_BIT(KC_RSHIFT)));
-  uni_int(SPANISH[spanish_i * 2 + (int)!shifted]);
+  uni_char(SPANISH[spanish_i * 2 + (int)!shifted]);
 }
 
 #ifdef RGB_MATRIX_ENABLE
@@ -193,7 +191,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * ,------------------------------------------------------------------------------------.
  * |       |rofl  |wink  |eacute|      |      |udiaer|uacute|iacute|oacute|      |      |
  * |-------+------+------+------+------+-------------+------+------+------+------+------|
- * |       |      |smile |dog   |      |      |      |      |kisses|      |      |      |
+ * |       |aacute|smile |dog   |      |      |      |      |kisses|      |      |      |
  * |-------+------+------+------+------+------|------+------+------+------+------+------|
  * |       |zany  |      |      |      |      |ntilde|      |      |      | openx|      |
  * |-------+------+------+------+------+------+------+------+------+------+------+------|
@@ -202,7 +200,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  */
 [_MACRO] = LAYOUT_planck_grid(
     _______,    ROFL,    WINK, E_ACUTE, _______, _______, U_DIAER, U_ACUTE, I_ACUTE, O_ACUTE, _______, _______,
-    _______, _______,   SMILE,     DOG, _______, _______, _______, _______,  KISSES, _______, _______, _______,
+    _______, A_ACUTE,   SMILE,     DOG, _______, _______, _______, _______,  KISSES, _______, _______, _______,
     _______,    ZANY, _______, _______, _______, _______, N_TILDE, _______, _______, _______,  OPEN_X, _______,
     _______,    NPKC, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 ),
@@ -237,7 +235,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  */
 [_ADJUST] = LAYOUT_planck_grid(
     _______, RESET,   _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+    _______, _______, _______,   AU_ON,  AU_OFF, _______, _______, _______, _______, _______, _______, _______,
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 )
@@ -441,6 +439,12 @@ void color_kb(uint8_t mode) {
     break;
   case ADJUST_MODE:
     indices[count] = Q_INDEX;
+    colors[count] = WHITE;
+    count++;
+    indices[count] = 15;
+    colors[count] = GREEN;
+    count++;
+    indices[count] = 16;
     colors[count] = RED;
     count++;
     break;
