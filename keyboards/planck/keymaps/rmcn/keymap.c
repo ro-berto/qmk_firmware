@@ -28,7 +28,6 @@ enum planck_layers { _QWERTY, _LOWER, _RAISE, _NUMPAD, _MACRO, _ADJUST };
 #define MR_COMB LT(_MACRO, KC_CAPSLOCK)
 
 
-// Light only?
 uint8_t current_layer = _QWERTY;
 uint8_t prev_layer = _ADJUST;
 bool layer_changed = false;
@@ -107,7 +106,9 @@ void spanish_char(uint16_t spanish_i) {
   uni_int(SPANISH[spanish_i * 2 + (int)!shifted]);
 }
 
-//TODO: rgbmatrix only?
+#ifdef RGB_MATRIX_ENABLE
+void color_kb(uint8_t mode);
+
 enum light_modes {
   QWERTY_MODE,
   CAPS_MODE,
@@ -117,12 +118,12 @@ enum light_modes {
   MACRO_MODE,
   ADJUST_MODE
 };
+#endif
 
 
 // TODO: refactor the following (they may already exist)
 #define NUM_KEYS 48
 #define ROW_LENGTH 12
-//TODO: Exclude if no rgbmatrix
 #define MAX_LEDS_PER_KEY 8
 #define Q_INDEX 1
 #define WHITE 0xFFFFFF
@@ -244,7 +245,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 };
 
-void color_kb(uint8_t mode);
 
 uint32_t layer_state_set_user(uint32_t state) {
   return update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
@@ -285,64 +285,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   return true;
 }
 
-// TODO: wtf is this?
-bool muse_mode = false;
-uint8_t last_muse_note = 0;
-uint16_t muse_counter = 0;
-uint8_t muse_offset = 70;
-uint16_t muse_tempo = 50;
-
-// TODO: remove encoder stuff.
-void encoder_update(bool clockwise) {
-  if (muse_mode) {
-    if (IS_LAYER_ON(_RAISE)) {
-      if (clockwise) {
-        muse_offset++;
-      } else {
-        muse_offset--;
-      }
-    } else {
-      if (clockwise) {
-        muse_tempo+=1;
-      } else {
-        muse_tempo-=1;
-      }
-    }
-  } else {
-    if (clockwise) {
-      #ifdef MOUSEKEY_ENABLE
-        tap_code(KC_MS_WH_DOWN);
-      #else
-        tap_code(KC_PGDN);
-      #endif
-    } else {
-      #ifdef MOUSEKEY_ENABLE
-        tap_code(KC_MS_WH_UP);
-      #else
-        tap_code(KC_PGUP);
-      #endif
-    }
-  }
-}
-
-void dip_update(uint8_t index, bool active) {
-  switch (index) {
-    case 0:
-      if (active) {
-        layer_on(_ADJUST);
-      } else {
-        layer_off(_ADJUST);
-      }
-      break;
-    case 1:
-      if (active) {
-        muse_mode = true;
-      } else {
-        muse_mode = false;
-      }
-   }
-}
-
 void matrix_scan_user(void) {
   for (int i = _QWERTY; i <= _ADJUST; i++) {
     if(layer_state_cmp(layer_state, i)){
@@ -355,6 +297,7 @@ void matrix_scan_user(void) {
   }
   if (layer_changed) {
     layer_changed = false;
+#ifdef RGB_MATRIX_ENABLE
     switch (current_layer) {
     case _QWERTY:
       color_kb(QWERTY_MODE);
@@ -375,6 +318,7 @@ void matrix_scan_user(void) {
       color_kb(ADJUST_MODE);
       break;
     }
+#endif
   }
 }
 
@@ -387,6 +331,8 @@ bool music_mask_user(uint16_t keycode) {
       return true;
   }
 }
+
+#ifdef RGB_MATRIX_ENABLE
 
 void blank_me(uint8_t *indices, uint32_t *colors) {
   for (int i = 0; i < NUM_KEYS; ++i) {
@@ -508,6 +454,7 @@ void color_kb(uint8_t mode) {
   }
   apply_keys(indices, colors, count);
 }
+#endif
 
 //TODO: use sound if enabled
 void led_set_user(uint8_t usb_led) {
@@ -518,7 +465,9 @@ void led_set_user(uint8_t usb_led) {
   if ((usb_led & (1 << USB_LED_CAPS_LOCK)) &&
       !(old_usb_led & (1 << USB_LED_CAPS_LOCK))) {
     // If CAPS LK LED is turning on...
+#ifdef RGB_MATRIX_ENABLE
     color_kb(CAPS_MODE);
+#endif
   } else if (!(usb_led & (1 << USB_LED_CAPS_LOCK)) &&
              (old_usb_led & (1 << USB_LED_CAPS_LOCK))) {
     // If CAPS LK LED is turning off...
