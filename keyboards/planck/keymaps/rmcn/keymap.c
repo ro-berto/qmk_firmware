@@ -245,6 +245,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 };
 
+#ifdef AUDIO_ENABLE
+  float tone_caps_on[][2]    = SONG(STARTUP_SOUND);
+  float tone_caps_off[][2]   = SONG(GOODBYE_SOUND);
+#endif
+
 
 uint32_t layer_state_set_user(uint32_t state) {
   return update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
@@ -468,10 +473,16 @@ void led_set_user(uint8_t usb_led) {
 #ifdef RGB_MATRIX_ENABLE
     color_kb(CAPS_MODE);
 #endif
+#ifdef AUDIO_ENABLE
+    PLAY_SONG(tone_caps_on);
+#endif
   } else if (!(usb_led & (1 << USB_LED_CAPS_LOCK)) &&
              (old_usb_led & (1 << USB_LED_CAPS_LOCK))) {
     // If CAPS LK LED is turning off...
     layer_changed = true;
+#ifdef AUDIO_ENABLE
+    PLAY_SONG(tone_caps_off);
+#endif
   }
   old_usb_led = usb_led;
 }
