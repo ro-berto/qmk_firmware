@@ -53,6 +53,7 @@ enum planck_keycodes {
   U_DIAER,
   N_TILDE,
   OPEN_X,
+  COLOR_KC,
   START_COLORS
   // Nothing after start_colors
 };
@@ -245,11 +246,14 @@ KC_CAPSLOCK,    ZANY, _______, _______, _______,  KISSES, N_TILDE, _______, ____
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 ),
 
+// Special key for leaving the _COLOR layer by holding it and tapping key 36
+// (should act as SET_QWE)
+#define SETC_37 LT(_MACRO, SETC(37))
 [_COLOR] = LAYOUT_planck_grid(
      SETC(0),  SETC(1),  SETC(2),  SETC(3),  SETC(4),  SETC(5),  SETC(6),  SETC(7),  SETC(8),  SETC(9), SETC(10), SETC(11),
     SETC(12), SETC(13), SETC(14), SETC(15), SETC(16), SETC(17), SETC(18), SETC(19), SETC(20), SETC(21), SETC(22), SETC(23),
     SETC(24), SETC(25), SETC(26), SETC(27), SETC(28), SETC(29), SETC(30), SETC(31), SETC(32), SETC(33), SETC(34), SETC(35),
-    SETC(36), SETC(37), SETC(38), SETC(39), SETC(40), SETC(41), SETC(42), SETC(43), SETC(44), SETC(45), SETC(46), SETC(47)
+    SETC(36),  SETC_37, SETC(38), SETC(39), SETC(40), SETC(41), SETC(42), SETC(43), SETC(44), SETC(45), SETC(46), SETC(47)
 )
 
 
@@ -267,18 +271,28 @@ uint32_t layer_state_set_user(uint32_t state) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
+  case COLOR_KC:
+    if (record->event.pressed) {
+      layer_off(_QWERTY);
+      layer_off(_NUMPAD);
+      layer_on(_COLOR);
+    }
+    return false;
+    break;
   case NPKC:
     if (record->event.pressed) {
-      set_single_persistent_default_layer(_NUMPAD);
+      //set_single_persistent_default_layer(_NUMPAD);
       layer_off(_QWERTY);
+      layer_off(_COLOR);
       layer_on(_NUMPAD);
     }
     return false;
     break;
   case SET_QWE:
     if (record->event.pressed) {
-      set_single_persistent_default_layer(_QWERTY);
+      //set_single_persistent_default_layer(_QWERTY);
       layer_off(_NUMPAD);
+      layer_off(_COLOR);
       layer_on(_QWERTY);
     }
     return false;
@@ -326,7 +340,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 void matrix_scan_user(void) {
-  for (int i = _QWERTY; i <= _ADJUST; i++) {
+  for (int i = _QWERTY; i <= _COLOR; i++) {
     if(layer_state_cmp(layer_state, i)){
       current_layer = i;
     }
@@ -339,6 +353,9 @@ void matrix_scan_user(void) {
     layer_changed = false;
 #ifdef RGB_MATRIX_ENABLE
     switch (current_layer) {
+    case _COLOR:
+      paint();
+      break;
     case _QWERTY:
       color_kb(QWERTY_MODE);
       break;
