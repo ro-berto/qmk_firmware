@@ -20,12 +20,12 @@
 extern keymap_config_t keymap_config;
 extern layer_state_t layer_state;
 
-enum planck_layers { _QWERTY, _LOWER, _RAISE, _NUMPAD, _MACRO, _ADJUST };
+enum planck_layers { _QWERTY, _LOWER, _RAISE, _NUMPAD, _MACRO, _ADJUST, _COLOR };
 
 #define LOWER MO(_LOWER)
 #define RAISE MO(_RAISE)
 #define MY_ENT MT(MOD_RSFT, KC_ENT)
-#define MR_COMB LT(_MACRO, KC_CAPSLOCK)
+#define MR_COMB MO(_MACRO)
 
 
 uint8_t current_layer = _QWERTY;
@@ -52,7 +52,10 @@ enum planck_keycodes {
   U_DIAER,
   N_TILDE,
   OPEN_X,
+  START_COLORS
+  // Nothing after start_colors
 };
+#define SETC(x) START_COLORS + x
 
 #define MAX_CODE_LENGTH 8
 void uni_char(const char *code) {
@@ -193,7 +196,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |-------+------+------+------+------+-------------+------+------+------+------+------|
  * |       |aacute|smile |dog   |      |      |      |      |kisses|      |      |      |
  * |-------+------+------+------+------+------|------+------+------+------+------+------|
- * |       |zany  |      |      |      |      |ntilde|      |      |      | openx|      |
+ * |capslok|zany  |      |      |      |      |ntilde|      |      |      | openx|      |
  * |-------+------+------+------+------+------+------+------+------+------+------+------|
  * |       |NumLok|      |      |      |             |      |      |      |      |      |
  * `------------------------------------------------------------------------------------'
@@ -201,7 +204,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [_MACRO] = LAYOUT_planck_grid(
     _______,    ROFL,    WINK, E_ACUTE, _______, _______, U_DIAER, U_ACUTE, I_ACUTE, O_ACUTE, _______, _______,
     _______, A_ACUTE,   SMILE,     DOG, _______, _______, _______, _______,  KISSES, _______, _______, _______,
-    _______,    ZANY, _______, _______, _______, _______, N_TILDE, _______, _______, _______,  OPEN_X, _______,
+KC_CAPSLOCK,    ZANY, _______, _______, _______, _______, N_TILDE, _______, _______, _______,  OPEN_X, _______,
     _______,    NPKC, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 ),
 /* Numpad
@@ -238,6 +241,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, _______, _______,   AU_ON,  AU_OFF, _______, _______, _______, _______, _______, _______, _______,
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
+),
+
+[_COLOR] = LAYOUT_planck_grid(
+     SETC(0),  SETC(1),  SETC(2),  SETC(3),  SETC(4),  SETC(5),  SETC(6),  SETC(7),  SETC(8),  SETC(9), SETC(10), SETC(11),
+    SETC(12), SETC(13), SETC(14), SETC(15), SETC(16), SETC(17), SETC(18), SETC(19), SETC(20), SETC(21), SETC(22), SETC(23),
+    SETC(24), SETC(25), SETC(26), SETC(27), SETC(28), SETC(29), SETC(30), SETC(31), SETC(32), SETC(33), SETC(34), SETC(35),
+    SETC(36), SETC(37), SETC(38), SETC(39), SETC(40), SETC(41), SETC(42), SETC(43), SETC(44), SETC(45), SETC(46), SETC(47)
 )
 
 
@@ -284,7 +294,32 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
     return false;
     break;
+#ifdef RGB_MATRIX_ENABLE
+  case SETC(0) ... SETC(47):
+    if (!key_set) {
+      current_key = keycode - SETC(0);
+      key_set = true;
+      pick_hue();
+    } else if (!hue_set) {
+      current_hue = keycode - SETC(0);
+      hue_set = true;
+      pick_sat();
+    } else if (!sat_set) {
+      current_sat = keycode - SETC(0);
+      sat_set = true;
+      pick_val();
+    } else {
+      current_val = keycode - SETC(0);
+      set_default_color(current_key, current_hue, current_sat, current_val);
+      key_set = false;
+      hue_set = false;
+      sat_set = false;
+    }
+    return false;
+    break;
+#endif
   }
+  
   return true;
 }
 
@@ -362,6 +397,7 @@ void apply_keys(uint8_t *indices, uint32_t *colors, uint8_t count) {
     }
   }
 }
+
 
 // TODO exclude if no rgbmatrix
 void color_kb(uint8_t mode) {
@@ -490,3 +526,91 @@ void led_set_user(uint8_t usb_led) {
   }
   old_usb_led = usb_led;
 }
+
+#ifdef RGB_MATRIX_ENABLE
+void color_led_rgb(uint8_t i, uint8_t r, uint8_t g, uint8_t b) {
+  uint8_t leds[MAX_LEDS_PER_KEY];
+  uint8_t row, column, led_count = 0;
+
+  row = i / ROW_LENGTH;
+  column = i % ROW_LENGTH;
+  led_count = rgb_matrix_map_row_column_to_led(row, column, leds);
+  for (int j = 0; j < led_count; j++) {
+    rgb_matrix_set_color(leds[j], r, g, b);
+  }
+}
+
+void color_led_hsv(uint8_t i, uint8_t h, uint8_t s, uint8_t v){
+  HSV x;
+  x.h = h;
+  x.s = s;
+  x.v = v;
+  RGB v = hsv_to_rgb(x);
+  color_led_rgb(i, v.r, v.g, v.b);
+}
+
+void set_default_color(uint8_t i, uint8_t h, uint8_t s, uint8_t v){
+  HSV x;
+  RGB v;
+  uint32_t val;
+
+  x.h = h;
+  x.s = s;
+  x.v = v;
+  v = hsv_to_rgb(x);
+
+  val = i;
+  val << 8;
+  val += v.r;
+  val << 8;
+  val += v.g;
+  val << 8;
+  val += v.b;
+  default_colors[i] = val;
+  paint();
+}
+
+void paint(){
+  uint8_t r, g, b;
+  for(int i; i < 48; i++){
+    b = default_colors[i] & 255;
+    g = (default_colors[i] >> 8) & 255;
+    r = (default_colors[i] >> 16) & 255;
+    color_led_rgb(i, r, g, b);
+  }
+}
+
+uint8_t step_vals[] = {
+    0,   5,  10,  16,  21,  27,  32,  37,  43,  48,  54,  59,
+   65,  70,  75,  81,  86,  92,  97, 103, 108, 113, 119, 124,
+  130, 135, 141, 146, 151, 157, 162, 168, 173, 179, 184, 189,
+  195, 200, 206, 211, 217, 222, 227, 233, 238, 244, 249, 255
+};
+
+uint32_t default_colors[48];
+uint8_t current_hue = 255;
+uint8_t current_sat = 255;
+uint8_t current_val = 255;
+bool hue_set = false;
+bool sat_set = false;
+
+void pick_hue() {
+  current_sat = 255;
+  current_val = 255;
+  for (int i = 0; i < 48; i++) {
+    color_led_hsv(i, step_vals[i], current_sat, current_val);
+  }
+}
+
+void pick_sat() {
+  for (int i = 0; i < 48; i++) {
+    color_led_hsv(i, current_hue, step_vals[i], current_val);
+  }
+}
+
+void pick_val() { 
+  for (int i = 0; i < 48; i++) {
+    color_led_hsv(i, current_hue, current_sat, step_vals[i]);
+  }
+}
+#endif
