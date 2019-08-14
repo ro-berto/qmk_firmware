@@ -111,6 +111,19 @@ void spanish_char(uint16_t spanish_i) {
 }
 
 #ifdef RGB_MATRIX_ENABLE
+void set_default_color(uint8_t, uint8_t, uint8_t, uint8_t);
+uint32_t default_colors[48];
+uint8_t current_hue = 255;
+uint8_t current_sat = 255;
+uint8_t current_val = 255;
+uint8_t current_key = 0;
+bool hue_set = false;
+bool sat_set = false;
+bool key_set = false;
+void paint(void);
+void pick_hue(void);
+void pick_sat(void);
+void pick_val(void);
 void color_kb(uint8_t mode);
 
 enum light_modes {
@@ -564,39 +577,41 @@ void color_led_hsv(uint8_t i, uint8_t h, uint8_t s, uint8_t v){
   x.h = h;
   x.s = s;
   x.v = v;
-  RGB v = hsv_to_rgb(x);
-  color_led_rgb(i, v.r, v.g, v.b);
+  RGB rgb = hsv_to_rgb(x);
+  color_led_rgb(i, rgb.r, rgb.g, rgb.b);
 }
 
-void set_default_color(uint8_t i, uint8_t h, uint8_t s, uint8_t v){
-  HSV x;
-  RGB v;
-  uint32_t val;
 
-  x.h = h;
-  x.s = s;
-  x.v = v;
-  v = hsv_to_rgb(x);
-
-  val = i;
-  val << 8;
-  val += v.r;
-  val << 8;
-  val += v.g;
-  val << 8;
-  val += v.b;
-  default_colors[i] = val;
-  paint();
-}
-
-void paint(){
+void paint(void){
   uint8_t r, g, b;
-  for(int i; i < 48; i++){
+  for(int i = 0; i < 48; i++){
     b = default_colors[i] & 255;
     g = (default_colors[i] >> 8) & 255;
     r = (default_colors[i] >> 16) & 255;
     color_led_rgb(i, r, g, b);
   }
+}
+
+
+void set_default_color(uint8_t i, uint8_t h, uint8_t s, uint8_t v){
+  HSV x;
+  RGB rgb;
+  uint32_t val;
+
+  x.h = h;
+  x.s = s;
+  x.v = v;
+  rgb = hsv_to_rgb(x);
+
+  val = i;
+  val = val << 8;
+  val += rgb.r;
+  val = val << 8;
+  val += rgb.g;
+  val = val << 8;
+  val += rgb.b;
+  default_colors[i] = val;
+  paint();
 }
 
 uint8_t step_vals[] = {
@@ -605,13 +620,6 @@ uint8_t step_vals[] = {
   130, 135, 141, 146, 151, 157, 162, 168, 173, 179, 184, 189,
   195, 200, 206, 211, 217, 222, 227, 233, 238, 244, 249, 255
 };
-
-uint32_t default_colors[48];
-uint8_t current_hue = 255;
-uint8_t current_sat = 255;
-uint8_t current_val = 255;
-bool hue_set = false;
-bool sat_set = false;
 
 void pick_hue() {
   current_sat = 255;
