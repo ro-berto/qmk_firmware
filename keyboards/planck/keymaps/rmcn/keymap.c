@@ -125,6 +125,13 @@ void pick_hue(void);
 void pick_sat(void);
 void pick_val(void);
 void color_kb(uint8_t mode);
+uint8_t step_vals[] = {
+    0,   5,  10,  16,  21,  27,  32,  37,  43,  48,  54,  59,
+   65,  70,  75,  81,  86,  92,  97, 103, 108, 113, 119, 124,
+  130, 135, 141, 146, 151, 157, 162, 168, 173, 179, 184, 189,
+  195, 200, 206, 211, 217, 222, 227, 233, 238, 244, 249, 255
+};
+
 
 enum light_modes {
   QWERTY_MODE,
@@ -214,14 +221,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |-------+------+------+------+------+------|------+------+------+------+------+------|
  * |capslok|zany  |      |      |      |kisses|ntilde|      |      |      | openx|      |
  * |-------+------+------+------+------+------+------+------+------+------+------+------|
- * |       |NumLok|      |      |      |             |      |      |      |      |      |
+ * |       |NumLok|      |      |      |   color     |      |      |      |      |      |
  * `------------------------------------------------------------------------------------'
  */
 [_MACRO] = LAYOUT_planck_grid(
-    _______,    ROFL,    WINK, E_ACUTE, _______, _______, U_DIAER, U_ACUTE, I_ACUTE, O_ACUTE, _______, _______,
-    _______, A_ACUTE,   SMILE,     DOG, _______, _______, _______, _______, THUMBSU, _______, _______, _______,
-KC_CAPSLOCK,    ZANY, _______, _______, _______,  KISSES, N_TILDE, _______, _______, _______,  OPEN_X, _______,
-    _______,    NPKC, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
+    _______,    ROFL,    WINK, E_ACUTE, _______,  _______, U_DIAER, U_ACUTE, I_ACUTE, O_ACUTE, _______, SET_QWE,
+    _______, A_ACUTE,   SMILE,     DOG, _______,  _______, _______, _______, THUMBSU, _______, _______, _______,
+KC_CAPSLOCK,    ZANY, _______, _______, _______,   KISSES, N_TILDE, _______, _______, _______,  OPEN_X, _______,
+    _______,    NPKC, _______, _______, _______, COLOR_KC, _______, _______, _______, _______, _______, _______
 ),
 /* Numpad
  * ,------------------------------------------------------------------------------------.
@@ -259,14 +266,13 @@ KC_CAPSLOCK,    ZANY, _______, _______, _______,  KISSES, N_TILDE, _______, ____
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 ),
 
-// Special key for leaving the _COLOR layer by holding it and tapping key 36
+// Special key for leaving the _COLOR layer by holding it and tapping key 11
 // (should act as SET_QWE)
-#define SETC_37 LT(_MACRO, SETC(37))
 [_COLOR] = LAYOUT_planck_grid(
      SETC(0),  SETC(1),  SETC(2),  SETC(3),  SETC(4),  SETC(5),  SETC(6),  SETC(7),  SETC(8),  SETC(9), SETC(10), SETC(11),
     SETC(12), SETC(13), SETC(14), SETC(15), SETC(16), SETC(17), SETC(18), SETC(19), SETC(20), SETC(21), SETC(22), SETC(23),
     SETC(24), SETC(25), SETC(26), SETC(27), SETC(28), SETC(29), SETC(30), SETC(31), SETC(32), SETC(33), SETC(34), SETC(35),
-    SETC(36),  SETC_37, SETC(38), SETC(39), SETC(40), SETC(41), SETC(42), SETC(43), SETC(44), SETC(45), SETC(46), SETC(47)
+    SETC(36), SETC(37), SETC(38), SETC(39), SETC(40), SETC(41), SETC(42), SETC(43), SETC(44), SETC(45), SETC(46), SETC(47)
 )
 
 
@@ -325,30 +331,33 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     break;
 #ifdef RGB_MATRIX_ENABLE
   case SETC(0) ... SETC(47):
-    if (!key_set) {
-      current_key = keycode - SETC(0);
-      key_set = true;
-      pick_hue();
-    } else if (!hue_set) {
-      current_hue = keycode - SETC(0);
-      hue_set = true;
-      pick_sat();
-    } else if (!sat_set) {
-      current_sat = keycode - SETC(0);
-      sat_set = true;
-      pick_val();
-    } else {
-      current_val = keycode - SETC(0);
-      set_default_color(current_key, current_hue, current_sat, current_val);
-      key_set = false;
-      hue_set = false;
-      sat_set = false;
+    if (record->event.pressed) {
+
+      if (!key_set) {
+        current_key = keycode - SETC(0);
+        key_set = true;
+        pick_hue();
+      } else if (!hue_set) {
+        current_hue = step_vals[keycode - SETC(0)];
+        hue_set = true;
+        pick_sat();
+      } else if (!sat_set) {
+        current_sat = step_vals[keycode - SETC(0)];
+        sat_set = true;
+        pick_val();
+      } else {
+        current_val = step_vals[keycode - SETC(0)];
+        set_default_color(current_key, current_hue, current_sat, current_val);
+        key_set = false;
+        hue_set = false;
+        sat_set = false;
+      }
+      return false;
     }
-    return false;
+    return true;
     break;
 #endif
   }
-  
   return true;
 }
 
@@ -370,7 +379,7 @@ void matrix_scan_user(void) {
       paint();
       break;
     case _QWERTY:
-      color_kb(QWERTY_MODE);
+      paint();
       break;
     case _LOWER:
       color_kb(LOWER_MODE);
@@ -594,6 +603,12 @@ void paint(void){
 
 
 void set_default_color(uint8_t i, uint8_t h, uint8_t s, uint8_t v){
+  // Jam key at index 1.
+  if (i==1 && h == 5 && s == 5 && v == 5) {
+    layer_off(_COLOR);
+    layer_on(_QWERTY);
+    return;
+  }
   HSV x;
   RGB rgb;
   uint32_t val;
@@ -605,21 +620,14 @@ void set_default_color(uint8_t i, uint8_t h, uint8_t s, uint8_t v){
 
   val = i;
   val = val << 8;
-  val += rgb.r;
+  val |= rgb.r;
   val = val << 8;
-  val += rgb.g;
+  val |= rgb.g;
   val = val << 8;
-  val += rgb.b;
+  val |= rgb.b;
   default_colors[i] = val;
   paint();
 }
-
-uint8_t step_vals[] = {
-    0,   5,  10,  16,  21,  27,  32,  37,  43,  48,  54,  59,
-   65,  70,  75,  81,  86,  92,  97, 103, 108, 113, 119, 124,
-  130, 135, 141, 146, 151, 157, 162, 168, 173, 179, 184, 189,
-  195, 200, 206, 211, 217, 222, 227, 233, 238, 244, 249, 255
-};
 
 void pick_hue() {
   current_sat = 255;
@@ -635,7 +643,7 @@ void pick_sat() {
   }
 }
 
-void pick_val() { 
+void pick_val() {
   for (int i = 0; i < 48; i++) {
     color_led_hsv(i, current_hue, current_sat, step_vals[i]);
   }
