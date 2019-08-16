@@ -168,7 +168,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |------+------+------+------+------+------|------+------+------+------+------+------|
  * | Shift|   Z  |   X  |   C  |   V  |   B  |   N  |   M  |   ,  |   .  |   /  |Enter |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |CL/MCR| Ctrl | Alt  | GUI  |Lower |    Space    |Raise | Left | Down |  Up  |Right |
+ * |CL/MCR| Ctrl | GUI  | Alt  |Lower |    Space    |Raise | Left | Down |  Up  |Right |
  * `-----------------------------------------------------------------------------------'
  */
 [_QWERTY] = LAYOUT_planck_grid(
@@ -649,23 +649,57 @@ void pick_val() {
   }
 }
 
-RGB classify(uint16_t code){
-  RGB res;
-  res.r = 255;
-  res.g = 255;
-  res.b = 0;
-  return res;
+void classify(uint16_t code, RGB *res){
+  switch(code) {
+/*KC_A ... KC_Z MILD_GREEN
+KC_1 ... KC_0 MILD_BLUE
+KC_MINUS ... KC_SLASH MILD_ORANGE
+KC_F1...KC_F12 MILD_WHITE
+KC_BSPACE MILD_RED
+KC_INSERT...KC_UP MILD_AMBER
+KC_NUMLOCK, KC_CAPSLOCK, MILD_PURPLE
+KC_KP_SLASH...KC_KP_DOT BRIGHT_BLUE
+KC__MUTE...KC__VOLDOWN BRIGHT_ORANGE
+KC_AUDIO_MUTE...KC_MEDIA_REWIND BRIGHT_ORANGE,
+KC_LCTRL...KC_RGUI DESAT_YELLOW
+FIRST_EMOJI...LAST_EMOJI BRIGHT_YELLOW
+FIRST_SPANISH...LAST_SPANISH BRIGHT_RED
+LOWER MILD_BLUE
+DEFAULT MILD_ORANGE
+RESET BRIGHT_RED
+MACRO BRIGHT_PURPLE
+:*/
+    //Letters
+    //Functions
+    //Espanol
+    //Emoji
+    //lower
+    //raise
+    //numbers
+    //vol/up audio/on
+    //vol/down audio/off
+    //reset
+    default:
+      res->r = 255;
+      res->g = 255;
+      res->b = 0;
+      break;
+  }
 }
 
 void make_map(uint32_t *colors){
   keypos_t key;
   uint16_t code;
+  RGB this_color;
+  uint8_t idx;
   for (int i = 0; i < MATRIX_ROWS; i++){
     for (int j = 0; j < MATRIX_COLS; j++){
       key.row = i;
       key.col = j;
       code = keymap_key_to_keycode(layer_switch_get_layer(key), key);
-      classify(code);
+      classify(code, &this_color);
+      idx = i * MATRIX_COLS + j;
+      color_led_rgb(idx, this_color.r, this_color.g, this_color.b); 
     }
   }
 }
