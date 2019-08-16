@@ -648,4 +648,25 @@ void pick_val() {
     color_led_hsv(i, current_hue, current_sat, step_vals[i]);
   }
 }
+
+RGB classify(uint16_t code){
+  RGB res;
+  res.r = 255;
+  res.g = 255;
+  res.b = 0;
+  return res;
+}
+
+void make_map(uint32_t *colors){
+  keypos_t key;
+  uint16_t code;
+  for (int i = 0; i < MATRIX_ROWS; i++){
+    for (int j = 0; j < MATRIX_COLS; j++){
+      key.row = i;
+      key.col = j;
+      code = keymap_key_to_keycode(layer_switch_get_layer(key), key);
+      classify(code);
+    }
+  }
+}
 #endif
