@@ -111,12 +111,6 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record)
 }
 
 uint8_t rgb_matrix_map_row_column_to_led_kb(uint8_t row, uint8_t column, uint8_t *led_i) {
-    // Spacebar has 2 leds 41 & 42, so add 42 to the array here, and 41 will be added
-    // by the default lookup code that runs after this
-    if (row == 3 && column == 5) {
-        led_i[0] = 42;
-        return 1;
-    }
     return 0;
 }
 
