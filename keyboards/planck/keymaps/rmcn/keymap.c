@@ -397,29 +397,41 @@ void classify(uint16_t code, RGB *res){
     case KC_KP_SLASH...KC_KP_DOT:
       color_cp(0x0000FF, res);
       break;
-    //KC_BSPACE MILD_RED
-    //KC_NUMLOCK, KC_CAPSLOCK, MILD_PURPLE
-    //KC__MUTE...KC__VOLDOWN BRIGHT_ORANGE
-    //KC_AUDIO_MUTE...KC_MEDIA_REWIND BRIGHT_ORANGE,
-    //KC_LCTRL...KC_RGUI DESAT_YELLOW
-    //FIRST_EMOJI...LAST_EMOJI BRIGHT_YELLOW
-    //FIRST_SPANISH...LAST_SPANISH BRIGHT_RED
-    //LOWER MILD_BLUE
-    //DEFAULT MILD_ORANGE
-    //RESET BRIGHT_RED
-    //MACRO BRIGHT_PURPLE
-    //Letters
-    //Functions
-    //Espanol
-    //Emoji
-    //lower
-    //raise
-    //numbers
-    //vol/up audio/on
-    //vol/down audio/off
-    //reset
+    case KC_BSPACE: //MILD_RED
+      color_cp(0x770000, res);
+      break;
+    case KC_NUMLOCK:
+      color_cp(0x0000FF, res);
+      break;
+    case KC_CAPSLOCK:
+      color_cp(0xFF0000, res);
+      break;
+    case KC__MUTE...KC__VOLDOWN: //BRIGHT_ORANGE
+      color_cp(0xFF9900, res);
+      break;
+    case KC_AUDIO_MUTE...KC_MEDIA_REWIND: //BRIGHT_ORANGE,
+      color_cp(0xFF9900, res);
+      break;
+    case KC_LCTRL...KC_RGUI: //DESAT_YELLOW
+      color_cp(0xFFFF99, res);
+      break;
+    case FIRST_EMOJI...LAST_EMOJI: //BRIGHT_YELLOW
+      color_cp(0xFFCC00, res);
+      break;
+    case FIRST_SPANISH...LAST_SPANISH: //BRIGHT_RED
+      color_cp(0xFF0000, res);
+      break;
+    case LOWER: //MILD_BLUE
+      color_cp(0x000099, res);
+      break;
+    case RESET: //BRIGHT_RED
+      color_cp(0xFF0000, res);
+      break;
+    case MR_COMB: //BRIGHT_PURPLE
+      color_cp(0xFF00FF, res);
+      break;
     default:
-      color_cp(0xFFFF00, res);
+      color_cp(0x994400, res);
       break;
   }
 }
