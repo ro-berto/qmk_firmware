@@ -20,17 +20,68 @@
 extern keymap_config_t keymap_config;
 extern layer_state_t layer_state;
 
-enum planck_layers { _QWERTY, _LOWER, _RAISE, _NUMPAD, _MACRO, _ADJUST, _COLOR };
-
+// COMBO Keys
 #define LOWER MO(_LOWER)
 #define RAISE MO(_RAISE)
-#define MY_ENT MT(MOD_RSFT, KC_ENT)
 #define MR_COMB MO(_MACRO)
+#define MY_ENT MT(MOD_RSFT, KC_ENT)
 
+// MACRO LAYER STUFF
+#define MAX_CODE_LENGTH 8
+#define FIRST_EMOJI ROFL
+#define LAST_EMOJI ZANY
+#define FIRST_SPANISH A_ACUTE
+#define LAST_SPANISH OPEN_X
 
-uint8_t current_layer = _QWERTY;
-uint8_t prev_layer = _ADJUST;
-bool layer_changed = false;
+// Color leds stuff
+#ifdef RGB_MATRIX_ENABLE
+#define ROW_LENGTH 12
+#define MAX_LEDS_PER_KEY 8
+
+uint32_t letter_color = 0xFF0000;
+void paint(void);
+#endif
+
+// Macro layer data
+const char EMOJIS [][7] = {
+  "1F923\0", //ROFL, 🤣
+  "1F618\0", //KISSES, 😘
+  "1F415\0", //DOG, 🐕
+  "1F603\0", //SMILE, 😃
+  "1F609\0", //WINK, 😉
+  "1F44D\0", //THUMBSU, 👍
+  "1F92A\0"  //ZANY, 🤪
+};
+
+// use 2*i for caps, 2*i + 1 for lower case.
+const char SPANISH [][4] = {
+  "C1\0", //Á
+  "E1\0", //á
+  "C9\0", //É
+  "E9\0", //é
+  "CD\0", //Í
+  "ED\0", //í
+  "D3\0", //Ó
+  "F3\0", //ó
+  "DA\0", //Ú
+  "FA\0", //ú
+  "DC\0", //Ü
+  "FC\0", //ü
+  "D1\0", //Ñ
+  "F1\0", //ñ
+  "BF\0", //¿
+  "A1\0", //¡
+};
+
+enum planck_layers {
+  _QWERTY,
+  _LOWER,
+  _RAISE,
+  _NUMPAD,
+  _MACRO,
+  _ADJUST,
+  _COLOR
+ };
 
 enum planck_keycodes {
   QWERTY = SAFE_RANGE,
@@ -53,80 +104,8 @@ enum planck_keycodes {
   U_DIAER,
   N_TILDE,
   OPEN_X,
-  COLOR_KC,
-  START_COLORS
   // Nothing after start_colors
 };
-#define SETC(x) START_COLORS + x
-
-#define MAX_CODE_LENGTH 8
-void uni_char(const char *code) {
-  SEND_STRING(SS_LSFT(SS_LCTRL("u")));
-  send_string(code);
-  SEND_STRING(SS_TAP(X_ENTER));
-}
-
-#define FIRST_EMOJI ROFL
-#define LAST_EMOJI ZANY
-const char EMOJIS [][7] = {
-  "1F923\0", //ROFL, 🤣
-  "1F618\0", //KISSES, 😘
-  "1F415\0", //DOG, 🐕
-  "1F603\0", //SMILE, 😃
-  "1F609\0", //WINK, 😉
-  "1F44D\0", //THUMBSU, 👍
-  "1F92A\0"  //ZANY, 🤪
-};
-
-
-void emoji(uint16_t emoji_i) {
-  uni_char(EMOJIS[emoji_i]);
-}
-
-#define FIRST_SPANISH A_ACUTE
-#define LAST_SPANISH OPEN_X
-// use 2*i for caps, 2*i + 1 for lower case.
-const char SPANISH [][4] = {
-  "C1\0", //Á
-  "E1\0", //á
-  "C9\0", //É
-  "E9\0", //é
-  "CD\0", //Í
-  "ED\0", //í
-  "D3\0", //Ó
-  "F3\0", //ó
-  "DA\0", //Ú
-  "FA\0", //ú
-  "DC\0", //Ü
-  "FC\0", //ü
-  "D1\0", //Ñ
-  "F1\0", //ñ
-  "BF\0", //¿
-  "A1\0", //¡
-};
-
-void spanish_char(uint16_t spanish_i) {
-  bool shifted = (bool)(get_mods() & (MOD_BIT(KC_LSHIFT)|MOD_BIT(KC_RSHIFT)));
-  uni_char(SPANISH[spanish_i * 2 + (int)!shifted]);
-}
-
-#ifdef RGB_MATRIX_ENABLE
-void paint(void);
-#endif
-
-
-// TODO: refactor the following (they may already exist)
-#define NUM_KEYS 48
-#define ROW_LENGTH 12
-#define MAX_LEDS_PER_KEY 8
-#define Q_INDEX 1
-#define WHITE 0xFFFFFF
-#define ORANGE 0xFFA500
-#define BLUE 0x0000FF
-#define PURPLE 0xFF00FF
-#define RED 0xFF0000
-#define YELLOW 0xFFFF00
-#define GREEN 0x00FF00
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
@@ -195,10 +174,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * `------------------------------------------------------------------------------------'
  */
 [_MACRO] = LAYOUT_planck_grid(
-    _______,    ROFL,    WINK, E_ACUTE, _______,  _______, U_DIAER, U_ACUTE, I_ACUTE, O_ACUTE, _______, SET_QWE,
-    _______, A_ACUTE,   SMILE,     DOG, _______,  _______, _______, _______, THUMBSU, _______, _______, _______,
-KC_CAPSLOCK,    ZANY, _______, _______, _______,   KISSES, N_TILDE, _______, _______, _______,  OPEN_X, _______,
-    _______,    NPKC, _______, _______, _______, COLOR_KC, _______, _______, _______, _______, _______, _______
+    _______,    ROFL,    WINK, E_ACUTE, XXXXXXX,  XXXXXXX, U_DIAER, U_ACUTE, I_ACUTE, O_ACUTE, XXXXXXX, SET_QWE,
+    _______, A_ACUTE,   SMILE,     DOG, XXXXXXX,  XXXXXXX, XXXXXXX, XXXXXXX, THUMBSU, XXXXXXX, XXXXXXX, _______,
+KC_CAPSLOCK,    ZANY, XXXXXXX, XXXXXXX, XXXXXXX,   KISSES, N_TILDE, XXXXXXX, XXXXXXX, XXXXXXX,  OPEN_X, _______,
+    _______,    NPKC, _______, _______, _______,  _______, _______, _______, _______, _______, _______, _______
 ),
 /* Numpad
  * ,------------------------------------------------------------------------------------.
@@ -212,28 +191,28 @@ KC_CAPSLOCK,    ZANY, _______, _______, _______,   KISSES, N_TILDE, _______, ___
  * `------------------------------------------------------------------------------------'
  */
 [_NUMPAD] = LAYOUT_planck_grid(
-    KC_TAB,  _______, _______, _______, _______, _______, _______, KC_KP_7, KC_KP_8, KC_KP_9, KC_PMNS, KC_BSPC,
-    _______, _______, _______, _______, _______, _______, _______, KC_KP_4, KC_KP_5, KC_KP_6, KC_PPLS, _______,
-    _______, _______, _______, _______, _______, _______, _______, KC_KP_1, KC_KP_2, KC_KP_3, KC_PSLS, KC_PENT,
-    SET_QWE, _______, _______, _______, _______, _______, _______, _______, KC_KP_0, KC_PDOT, KC_PAST, KC_PEQL
+    KC_TAB,  XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_KP_7, KC_KP_8, KC_KP_9, KC_PMNS, KC_BSPC,
+    _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_KP_4, KC_KP_5, KC_KP_6, KC_PPLS, _______,
+    _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_KP_1, KC_KP_2, KC_KP_3, KC_PSLS, KC_PENT,
+    SET_QWE, _______, _______, _______, _______, _______, _______, XXXXXXX, KC_KP_0, KC_PDOT, KC_PAST, KC_PEQL
 ),
 
 /* Adjust (Lower + Raise)
  * ,-----------------------------------------------------------------------------------.
- * |      | Reset|      |      |      |      |      |      |      |      |      |  Del |
+ * |      | Reset|      |      |      |      |      |      |      |      |      |      |
  * |------+------+------+------+------+-------------+------+------+------+------+------|
- * |      |      |      |Aud on|Audoff|AGnorm|AGswap|Qwerty|Colemk|Dvorak|Plover|      |
+ * |      |      |      |Aud on|Audoff|      |      |      |      |      |      |      |
  * |------+------+------+------+------+------|------+------+------+------+------+------|
- * |      |Voice-|Voice+|Mus on|Musoff|MIDIon|MIDIof|      |      |      |      |      |
+ * |      |      |      |      |      |      |      |      |      |      |      |      |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * |      |      |      |      |      |             |      |      |      |      |      |
  * `-----------------------------------------------------------------------------------'
  */
 [_ADJUST] = LAYOUT_planck_grid(
-    _______, RESET,   _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-    _______, _______, _______,   AU_ON,  AU_OFF, _______, _______, _______, _______, _______, _______, _______,
-    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
+    XXXXXXX, RESET,   XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+    XXXXXXX, XXXXXXX, XXXXXXX,   AU_ON,  AU_OFF, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+    XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+    XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______, XXXXXXX, XXXXXXX, _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
 )
 
 };
@@ -243,6 +222,24 @@ KC_CAPSLOCK,    ZANY, _______, _______, _______,   KISSES, N_TILDE, _______, ___
   float tone_caps_off[][2]   = SONG(GOODBYE_SOUND);
 #endif
 
+uint8_t current_layer = _QWERTY;
+uint8_t prev_layer = _ADJUST;
+bool layer_changed = false;
+
+void uni_char(const char *code) {
+  SEND_STRING(SS_LSFT(SS_LCTRL("u")));
+  send_string(code);
+  SEND_STRING(SS_TAP(X_ENTER));
+}
+
+void emoji(uint16_t emoji_i) {
+  uni_char(EMOJIS[emoji_i]);
+}
+
+void spanish_char(uint16_t spanish_i) {
+  bool shifted = (bool)(get_mods() & (MOD_BIT(KC_LSHIFT)|MOD_BIT(KC_RSHIFT)));
+  uni_char(SPANISH[spanish_i * 2 + (int)!shifted]);
+}
 
 uint32_t layer_state_set_user(uint32_t state) {
   return update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
@@ -250,17 +247,8 @@ uint32_t layer_state_set_user(uint32_t state) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
-  case COLOR_KC:
-    if (record->event.pressed) {
-      layer_off(_QWERTY);
-      layer_off(_NUMPAD);
-      layer_on(_COLOR);
-    }
-    return false;
-    break;
   case NPKC:
     if (record->event.pressed) {
-      //set_single_persistent_default_layer(_NUMPAD);
       layer_off(_QWERTY);
       layer_off(_COLOR);
       layer_on(_NUMPAD);
@@ -269,7 +257,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     break;
   case SET_QWE:
     if (record->event.pressed) {
-      //set_single_persistent_default_layer(_QWERTY);
       layer_off(_NUMPAD);
       layer_off(_COLOR);
       layer_on(_QWERTY);
@@ -311,25 +298,7 @@ void matrix_scan_user(void) {
   }
 }
 
-bool music_mask_user(uint16_t keycode) {
-  switch (keycode) {
-    case RAISE:
-    case LOWER:
-      return false;
-    default:
-      return true;
-  }
-}
-
-#ifdef RGB_MATRIX_ENABLE
-
-void blank_me(void) {
-  rgb_matrix_set_color_all(0, 0, 0);
-}
-
-#endif
-
-//TODO: use sound if enabled
+// Handle CAPSLOCK
 void led_set_user(uint8_t usb_led) {
   static uint8_t old_usb_led = 0;
 
@@ -339,7 +308,8 @@ void led_set_user(uint8_t usb_led) {
       !(old_usb_led & (1 << USB_LED_CAPS_LOCK))) {
     // If CAPS LK LED is turning on...
 #ifdef RGB_MATRIX_ENABLE
-    blank_me();
+    letter_color = 0xFF0000;
+    paint();
 #endif
 #ifdef AUDIO_ENABLE
     PLAY_SONG(tone_caps_on);
@@ -348,6 +318,7 @@ void led_set_user(uint8_t usb_led) {
              (old_usb_led & (1 << USB_LED_CAPS_LOCK))) {
     // If CAPS LK LED is turning off...
 #ifdef RGB_MATRIX_ENABLE
+    letter_color = 0x009900;
     paint();
 #endif
     
@@ -379,8 +350,11 @@ void color_cp(uint32_t in, RGB *out) {
 
 void classify(uint16_t code, RGB *res){
   switch(code) {
+    case XXXXXXX:
+      color_cp(0x000000, res);
+      break;
     case KC_A ... KC_Z:
-      color_cp(0x009900, res);
+      color_cp(letter_color, res);
       break;
     case KC_1 ... KC_0:
       color_cp(0x000099, res);
@@ -397,7 +371,7 @@ void classify(uint16_t code, RGB *res){
     case KC_KP_SLASH...KC_KP_DOT:
       color_cp(0x0000FF, res);
       break;
-    case KC_BSPACE: //MILD_RED
+    case KC_BSPACE:
       color_cp(0x770000, res);
       break;
     case KC_NUMLOCK:
@@ -406,28 +380,28 @@ void classify(uint16_t code, RGB *res){
     case KC_CAPSLOCK:
       color_cp(0xFF0000, res);
       break;
-    case KC__MUTE...KC__VOLDOWN: //BRIGHT_ORANGE
+    case KC__MUTE...KC__VOLDOWN:
       color_cp(0xFF9900, res);
       break;
-    case KC_AUDIO_MUTE...KC_MEDIA_REWIND: //BRIGHT_ORANGE,
+    case KC_AUDIO_MUTE...KC_MEDIA_REWIND:
       color_cp(0xFF9900, res);
       break;
-    case KC_LCTRL...KC_RGUI: //DESAT_YELLOW
+    case KC_LCTRL...KC_RGUI:
       color_cp(0xFFFF99, res);
       break;
-    case FIRST_EMOJI...LAST_EMOJI: //BRIGHT_YELLOW
+    case FIRST_EMOJI...LAST_EMOJI:
       color_cp(0xFFCC00, res);
       break;
-    case FIRST_SPANISH...LAST_SPANISH: //BRIGHT_RED
+    case FIRST_SPANISH...LAST_SPANISH:
       color_cp(0xFF0000, res);
       break;
-    case LOWER: //MILD_BLUE
+    case LOWER:
       color_cp(0x000099, res);
       break;
-    case RESET: //BRIGHT_RED
+    case RESET:
       color_cp(0xFF0000, res);
       break;
-    case MR_COMB: //BRIGHT_PURPLE
+    case MR_COMB:
       color_cp(0xFF00FF, res);
       break;
     default:
