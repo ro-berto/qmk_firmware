@@ -350,6 +350,7 @@ void color_cp(uint32_t in, RGB *out) {
 
 void classify(uint16_t code, RGB *res){
   switch(code) {
+    case KC_SPC:
     case XXXXXXX:
       color_cp(0x000000, res);
       break;
@@ -395,7 +396,7 @@ void classify(uint16_t code, RGB *res){
     case FIRST_SPANISH...LAST_SPANISH:
       color_cp(0xFF0000, res);
       break;
-    case LOWER:
+    case RAISE:
       color_cp(0x000099, res);
       break;
     case RESET:
