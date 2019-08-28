@@ -38,7 +38,7 @@ extern layer_state_t layer_state;
 #define ROW_LENGTH 12
 #define MAX_LEDS_PER_KEY 8
 
-uint32_t letter_color = 0xFF0000;
+uint32_t letter_color = 0x00FF00;
 void paint(void);
 #endif
 
@@ -360,6 +360,7 @@ void classify(uint16_t code, RGB *res){
     case KC_1 ... KC_0:
       color_cp(0x000099, res);
       break;
+    case KC_UNDS ... KC_QUES:
     case KC_MINUS ... KC_SLASH:
       color_cp(0x999900, res);
       break;
@@ -367,25 +368,21 @@ void classify(uint16_t code, RGB *res){
       color_cp(0x999999, res);
       break;
     case KC_INSERT...KC_UP:
-      color_cp(0x449900, res);
+      color_cp(0x449944, res);
       break;
+    case NPKC:
     case KC_KP_SLASH...KC_KP_DOT:
       color_cp(0x0000FF, res);
       break;
     case KC_BSPACE:
       color_cp(0x770000, res);
       break;
-    case KC_NUMLOCK:
-      color_cp(0x0000FF, res);
-      break;
     case KC_CAPSLOCK:
-      color_cp(0xFF0000, res);
+      color_cp(0x880044, res);
       break;
     case KC__MUTE...KC__VOLDOWN:
-      color_cp(0xFF9900, res);
-      break;
     case KC_AUDIO_MUTE...KC_MEDIA_REWIND:
-      color_cp(0xFF9900, res);
+      color_cp(0xFF3366, res);
       break;
     case KC_LCTRL...KC_RGUI:
       color_cp(0xFFFF99, res);
@@ -410,6 +407,7 @@ void classify(uint16_t code, RGB *res){
       break;
   }
 }
+
 
 void paint() {
   keypos_t key;
