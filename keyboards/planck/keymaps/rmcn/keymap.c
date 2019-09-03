@@ -375,7 +375,7 @@ void classify(uint16_t code, RGB *res){
     case LOWER:
     case KC_UNDS ... KC_QUES:
     case KC_MINUS ... KC_SLASH:
-      color_cp(0x999900, res);
+      color_cp(0xFF9900, res);
       break;
  // FKEYS
     case KC_F1...KC_F12:
@@ -410,7 +410,7 @@ void classify(uint16_t code, RGB *res){
       break;
  // DEFAULT
     default:
-      color_cp(0x99FF00, res);
+      color_cp(0x99FF77, res);
       break;
   }
 }
